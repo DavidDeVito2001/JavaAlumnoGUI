@@ -8,23 +8,18 @@ import java.time.LocalDate;
 
 /**
  *
- * @author g.guzman
+ * @author Ezequiel
  */
 public class AlumnoDto {
-    
+
     private String dni;
-    
     private String nombre;
-    
+    private String apellido;
     private LocalDate fecNac;
-
-    public LocalDate getFecNac() {
-        return fecNac;
-    }
-
-    public void setFecNac(LocalDate fecNac) {
-        this.fecNac = fecNac;
-    }
+    private String promedio;
+    private String cantMatAprob;
+    private LocalDate fecIng;
+    private String estado;
 
     public String getDni() {
         return dni;
@@ -41,5 +36,52 @@ public class AlumnoDto {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
-    
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
+    }
+
+    public LocalDate getFecNac() {
+        return fecNac;
+    }
+
+    public void setFecNac(LocalDate fecNac) {
+        this.fecNac = fecNac;
+    }
+
+    public String getPromedio() {
+        return promedio;
+    }
+
+    public void setPromedio(String promedio) {
+        this.promedio = promedio;
+    }
+
+    public String getCantMatAprob() {
+        return cantMatAprob;
+    }
+
+    public void setCantMatAprob(String cantMatAprob) {
+        this.cantMatAprob = cantMatAprob;
+    }
+
+    public LocalDate getFecIng() {
+        return fecIng;
+    }
+
+    public void setFecIng(LocalDate fecIng) {
+        this.fecIng = fecIng;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 }

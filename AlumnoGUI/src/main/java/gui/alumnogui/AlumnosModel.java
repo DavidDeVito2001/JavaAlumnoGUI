@@ -4,7 +4,7 @@
  */
 package gui.alumnogui;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import persona.Alumno;
@@ -14,25 +14,47 @@ import persona.Alumno;
  * @author g.guzman
  */
 public class AlumnosModel extends AbstractTableModel {
-    
+
     private static final int COL_DNI = 0;
-    private static final int COL_NOMBRE = 1;
-    private static final int COL_APEELIDO = 2;
-    private static final int COL_FEC_NAC = 3;
-    
-    private static final String[] ENCABEZADOS = {"DNI", "NOMBRE", "APELLIDO", "FEC_NAC"};
-    
-    private List<Alumno> alumnos;
+    private static final int COL_APELLIDO = 1;
+    private static final int COL_NOMBRE = 2;
+    private static final int COL_ESTADO = 3;
+
+    private static final String[] ENCABEZADOS = {
+        "DNI", "APELLIDO", "NOMBRE", "ESTADO"
+    };
+
+    private List<Alumno> alumnos = new ArrayList<>();
 
     public void setAlumnos(List<Alumno> alumnos) {
-        this.alumnos = alumnos;
+        if (alumnos == null) {
+            this.alumnos = new ArrayList<>();
+        } else {
+            this.alumnos = alumnos;
+        }
+
+        fireTableDataChanged();
+    }
+
+    public List<Alumno> getAlumnos() {
+        return alumnos;
+    }
+
+    public Alumno getAlumnoAt(int rowIndex) {
+        if (rowIndex < 0 || rowIndex >= alumnos.size()) {
+            return null;
+        }
+
+        return alumnos.get(rowIndex);
+    }
+
+    public void limpiar() {
+        alumnos.clear();
+        fireTableDataChanged();
     }
 
     @Override
     public int getRowCount() {
-        if (alumnos==null) {
-            return 0;
-        }
         return alumnos.size();
     }
 
@@ -43,30 +65,33 @@ public class AlumnosModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Alumno alu = alumnos.get(rowIndex);
-        
-        switch (columnIndex) {
-            case COL_DNI -> {
-                return alu.getDni();
-            }
-            case COL_NOMBRE -> {
-                return alu.getNombre();
-            }
-            case COL_APEELIDO -> {
-                return alu.getApellido();
-            }
-            case COL_FEC_NAC -> {
-                return LocalDate.now().plusYears(rowIndex);
-            }
-            default -> throw new AssertionError();
-        }
-        
-        
+        Alumno alumno = alumnos.get(rowIndex);
+
+        return switch (columnIndex) {
+            case COL_DNI -> alumno.getDni();
+            case COL_APELLIDO -> alumno.getApellido();
+            case COL_NOMBRE -> alumno.getNombre();
+            case COL_ESTADO -> alumno.getEstado();
+            default -> "";
+        };
     }
 
     @Override
     public String getColumnName(int column) {
         return ENCABEZADOS[column];
     }
-    
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        return switch (columnIndex) {
+            case COL_DNI -> Integer.class;
+            case COL_APELLIDO, COL_NOMBRE, COL_ESTADO -> String.class;
+            default -> Object.class;
+        };
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        return false;
+    }
 }
