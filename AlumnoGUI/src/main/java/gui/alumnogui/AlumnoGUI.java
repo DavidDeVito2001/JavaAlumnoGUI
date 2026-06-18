@@ -12,7 +12,6 @@ import dao.DAOFactory;
 import dao.DAOFactoryException;
 import exceptions.DniInvalidoException;
 import exceptions.NombreInvalidoException;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -376,41 +375,86 @@ public class AlumnoGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_browseButtonActionPerformed
 
     private void crearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_crearButtonActionPerformed
+        if (dao == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un repositorio", "Crear",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         AlumnoDialog dialog = new AlumnoDialog(this, true, CrudOptionEnum.CREATE);
         dialog.setVisible(true);
-        
+
+        AlumnoDto dto = dialog.getDto();
+        if (dto == null) {
+            return;
+        }
+
         try {
-            AlumnoDto dto = dialog.getDto();
-            if (dto!=null) {
-                Alumno aluToCreate = AlumnoMapper.dto2Alu(dto);
-                dao.create(aluToCreate);
-            }
-        } catch (DAOException | DniInvalidoException | NombreInvalidoException ex) {
+            Alumno aluToCreate = AlumnoMapper.dto2Alu(dto);
+            dao.create(aluToCreate);
+            refrescarGrillaSiConectado();
+        } catch (DAOException | DniInvalidoException | NombreInvalidoException | IllegalArgumentException ex) {
             Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_crearButtonActionPerformed
 
     private void consultarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_consultarButtonActionPerformed
-        AlumnoDialog dialog = new AlumnoDialog(this, true, CrudOptionEnum.READ);
-        dialog.setVisible(true);
+        int selectedRow = alumnosTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Consultar", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
+        Alumno selectedAlu = alumnosModel.getAlumnoAt(selectedRow);
+        if (selectedAlu == null) {
+            JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Consultar", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        AlumnoDialog dialog = new AlumnoDialog(this, true, CrudOptionEnum.READ);
+        dialog.setDto(AlumnoMapper.alu2Dto(selectedAlu));
+        dialog.setVisible(true);
     }//GEN-LAST:event_consultarButtonActionPerformed
 
     private void modificarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_modificarButtonActionPerformed
-        int selectedRow = alumnosTable.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Eliminar", JOptionPane.WARNING_MESSAGE);
+        if (dao == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un repositorio", "Modificar",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
-        Alumno selectedAlu = alumnos.get(selectedRow);
-        
-        selectedAlu.setFecNac(LocalDate.now().minusYears(26)); // Simulacion  - TODO: Eliminar
-        
+
+        int selectedRow = alumnosTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Modificar", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Alumno selectedAlu = alumnosModel.getAlumnoAt(selectedRow);
+        if (selectedAlu == null) {
+            JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Modificar", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         AlumnoDialog dialog = new AlumnoDialog(this, true, CrudOptionEnum.UPDATE);
         dialog.setDto(AlumnoMapper.alu2Dto(selectedAlu));
-        
         dialog.setVisible(true);
 
+        AlumnoDto dto = dialog.getDto();
+        if (dto == null) {
+            return;
+        }
+
+        try {
+            Alumno aluToUpdate = AlumnoMapper.dto2Alu(dto);
+            dao.update(aluToUpdate);
+            refrescarGrillaSiConectado();
+        } catch (DAOException | DniInvalidoException | NombreInvalidoException | IllegalArgumentException ex) {
+            Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_modificarButtonActionPerformed
 
     private void connDBButtonActionPerformed(java.awt.event.ActionEvent evt) {
