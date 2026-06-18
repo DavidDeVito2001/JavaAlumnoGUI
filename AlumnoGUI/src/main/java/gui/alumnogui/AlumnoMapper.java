@@ -24,15 +24,28 @@ public final class AlumnoMapper {
             throw new IllegalArgumentException("No hay datos de alumno para guardar.");
         }
 
+        validarObligatorio(dto.getDni(), "DNI");
+        validarObligatorio(dto.getNombre(), "Nombre");
+        validarObligatorio(dto.getApellido(), "Apellido");
+        validarObligatorio(dto.getPromedio(), "Promedio");
+        validarObligatorio(dto.getCantMatAprob(), "Cantidad de materias aprobadas");
+        validarObligatorio(dto.getEstado(), "Estado");
+        if (dto.getFecNac() == null) {
+            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
+        }
+        if (dto.getFecIng() == null) {
+            throw new IllegalArgumentException("La fecha de ingreso es obligatoria.");
+        }
+
         Alumno alu = new Alumno();
-        alu.setDni(Integer.parseInt(dto.getDni()));
+        alu.setDni(parseInt(dto.getDni(), "DNI"));
         alu.setNombre(dto.getNombre());
         alu.setApellido(dto.getApellido());
         alu.setFecNac(dto.getFecNac());
-        alu.setPromedio(parseDouble(dto.getPromedio()));
-        alu.setCantMatAprob(parseShort(dto.getCantMatAprob()));
+        alu.setPromedio(parseDouble(dto.getPromedio(), "Promedio"));
+        alu.setCantMatAprob(parseShort(dto.getCantMatAprob(), "Cantidad de materias aprobadas"));
         alu.setFecIng(dto.getFecIng());
-        alu.setEstado(parseChar(dto.getEstado(), ESTADO_POR_DEFECTO));
+        alu.setEstado(parseEstado(dto.getEstado()));
 
         return alu;
     }
@@ -55,15 +68,42 @@ public final class AlumnoMapper {
         return value == null || value.trim().isEmpty();
     }
 
-    private static double parseDouble(String value) {
-        return isBlank(value) ? 0d : Double.parseDouble(value);
+    private static void validarObligatorio(String value, String campo) {
+        if (isBlank(value)) {
+            throw new IllegalArgumentException("El campo " + campo + " es obligatorio.");
+        }
     }
 
-    private static short parseShort(String value) {
-        return isBlank(value) ? 0 : Short.parseShort(value);
+    private static int parseInt(String value, String campo) {
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("El campo " + campo + " debe ser numerico.", ex);
+        }
     }
 
-    private static char parseChar(String value, char porDefecto) {
-        return isBlank(value) ? porDefecto : value.charAt(0);
+    private static double parseDouble(String value, String campo) {
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("El campo " + campo + " debe ser numerico.", ex);
+        }
+    }
+
+    private static short parseShort(String value, String campo) {
+        try {
+            return Short.parseShort(value.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("El campo " + campo + " debe ser numerico entero.", ex);
+        }
+    }
+
+    private static char parseEstado(String value) {
+        char estado = isBlank(value) ? ESTADO_POR_DEFECTO : Character.toUpperCase(value.trim().charAt(0));
+        if (estado != 'A' && estado != 'B') {
+            throw new IllegalArgumentException("El estado debe ser A o B.");
+        }
+
+        return estado;
     }
 }

@@ -26,7 +26,12 @@ import persona.Alumno;
  *
  * @author g.guzman
  */
+@SuppressWarnings({"serial", "this-escape"})
 public class AlumnoGUI extends javax.swing.JFrame {
+
+    private static final String DEFAULT_DB_URL = "jdbc:mysql://localhost:3306/universidad_caba";
+    private static final String DEFAULT_DB_USER = "root";
+    private static final String DEFAULT_DB_PWD = "root";
 
     private DAO<Alumno, Integer> dao;
     private AlumnoDAOTXT daoTXT;
@@ -45,6 +50,8 @@ public class AlumnoGUI extends javax.swing.JFrame {
         //TableModel alumnosModel = new AlumnosModel();
         alumnosModel = new AlumnosModel();
         alumnosTable.setModel(alumnosModel);
+        verEliminadosCheckBox.setSelected(false);
+        userTextField.setText(DEFAULT_DB_USER);
     }
 
     /**
@@ -201,6 +208,11 @@ public class AlumnoGUI extends javax.swing.JFrame {
         jLabel3.setText("Usuario:");
 
         connDBButton.setText("Conectar");
+        connDBButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                connDBButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout bdPanelLayout = new javax.swing.GroupLayout(bdPanel);
         bdPanel.setLayout(bdPanelLayout);
@@ -227,6 +239,11 @@ public class AlumnoGUI extends javax.swing.JFrame {
         );
 
         verEliminadosCheckBox.setText("Ver Eliminados");
+        verEliminadosCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                verEliminadosCheckBoxActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -284,15 +301,21 @@ public class AlumnoGUI extends javax.swing.JFrame {
             if (daoTXT!=null) {
                 dao = daoTXT;
             }
+        } else {
+            if (daoSQL != null) {
+                dao = daoSQL;
+            }
         }
-        // TODO SQL
-        
-        
+
         txtPanel.setVisible(repoComboBox.getSelectedIndex() == 0);
         bdPanel.setVisible(repoComboBox.getSelectedIndex() == 1);
+        refrescarGrillaSiConectado();
     }//GEN-LAST:event_repoComboBoxActionPerformed
 
     private void eliminarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eliminarButtonActionPerformed
+        if (procesarEliminar()) {
+            return;
+        }
         int selectedRow = alumnosTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Eliminar", JOptionPane.WARNING_MESSAGE);
@@ -329,11 +352,12 @@ public class AlumnoGUI extends javax.swing.JFrame {
         JFileChooser fileChooser = new JFileChooser(fsv);
         final int showOpenDialog = fileChooser.showOpenDialog(this);
         if (showOpenDialog == JFileChooser.APPROVE_OPTION) {
-            pathfileTextField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+            String pathfile = fileChooser.getSelectedFile().getAbsolutePath();
+            pathfileTextField.setText(pathfile);
             
             Map<String, String> config = new HashMap<>();
             config.put(DAOFactory.TIPO_DAO, DAOFactory.TIPO_DAO_TXT);
-            config.put(DAOFactory.PATH_FILE, "alumnos.txt");
+            config.put(DAOFactory.PATH_FILE, pathfile);
             try {
                 daoTXT = (AlumnoDAOTXT) DAOFactory.createDAO(config);
                 dao = daoTXT;
@@ -388,6 +412,82 @@ public class AlumnoGUI extends javax.swing.JFrame {
         dialog.setVisible(true);
 
     }//GEN-LAST:event_modificarButtonActionPerformed
+
+    private void connDBButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        Map<String, String> config = new HashMap<>();
+        config.put(DAOFactory.TIPO_DAO, DAOFactory.TIPO_DAO_SQL);
+        config.put(DAOFactory.URL_DB, DEFAULT_DB_URL);
+        config.put(DAOFactory.USER_DB, userTextField.getText());
+        config.put(DAOFactory.PWD_DB, DEFAULT_DB_PWD);
+
+        try {
+            daoSQL = (AlumnoDAOSQL) DAOFactory.createDAO(config);
+            dao = daoSQL;
+            refrescarGrillaSiConectado();
+        } catch (DAOFactoryException ex) {
+            Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void verEliminadosCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {
+        refrescarGrillaSiConectado();
+    }
+
+    private void refrescarGrillaSiConectado() {
+        if (dao == null) {
+            alumnosModel.limpiar();
+            return;
+        }
+
+        try {
+            alumnos = dao.findAll(verEliminadosCheckBox.isSelected());
+            alumnosModel.setAlumnos(alumnos);
+        } catch (DAOException ex) {
+            Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private boolean procesarEliminar() {
+        if (dao == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un repositorio", "Eliminar",
+                    JOptionPane.WARNING_MESSAGE);
+            return true;
+        }
+
+        int selectedRow = alumnosTable.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Eliminar",
+                    JOptionPane.WARNING_MESSAGE);
+            return true;
+        }
+
+        Alumno selectedAlu = alumnosModel.getAlumnoAt(selectedRow);
+        if (selectedAlu == null) {
+            JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Eliminar",
+                    JOptionPane.WARNING_MESSAGE);
+            return true;
+        }
+
+        final int showConfirmDialog = JOptionPane.showConfirmDialog(this,
+                "Confirma la eliminacion de alumno " + selectedAlu.getNombre() + "?",
+                "Confirmacion", JOptionPane.OK_CANCEL_OPTION);
+        if (showConfirmDialog == JOptionPane.OK_OPTION) {
+            try {
+                dao.delete(selectedAlu.getDni());
+                refrescarGrillaSiConectado();
+            } catch (DAOException ex) {
+                Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
+        return true;
+    }
 
     /**
      * @param args the command line arguments

@@ -9,7 +9,6 @@ import exceptions.NombreInvalidoException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -26,9 +25,11 @@ public class AlumnoDAOTXT extends DAO<Alumno,Integer> {
     // private static final String CTE = "CTE";
     
     private final RandomAccessFile raf;
+    private final String pathfile;
     
     AlumnoDAOTXT(String pathfile) throws DAOException {
         try {
+            this.pathfile = pathfile;
             raf = new RandomAccessFile(pathfile, "rws");
         } catch (FileNotFoundException ex) {
             Logger.getLogger(AlumnoDAOTXT.class.getName()).log(Level.SEVERE, null, ex);
@@ -73,15 +74,30 @@ public class AlumnoDAOTXT extends DAO<Alumno,Integer> {
 
     @Override
     public void update(Alumno alumno) throws DAOException {
-        // raf.getFilePointer()
-        // raf.seek(???)
-        // raf.writeBytes(AlumnoUtils.alu2Str(alumno));
-        
+        List<Alumno> alumnos = findAll(true);
+        boolean actualizado = false;
+
+        for (int i = 0; i < alumnos.size(); i++) {
+            if (alumnos.get(i).getDni() == alumno.getDni()) {
+                alumnos.set(i, alumno);
+                actualizado = true;
+                break;
+            }
+        }
+
+        if (!actualizado) {
+            throw new DAOException("No existe alumno con DNI " + alumno.getDni());
+        }
+
+        reescribirArchivo(alumnos);
     }
 
     @Override
     public void delete(Integer dni) throws DAOException {
         Alumno alu = read(dni);
+        if (alu == null) {
+            throw new DAOException("No existe alumno con DNI " + dni);
+        }
         alu.setEstado('B');
         update(alu);
     }
@@ -91,12 +107,21 @@ public class AlumnoDAOTXT extends DAO<Alumno,Integer> {
         List<Alumno> alumnos = new ArrayList<>();
         
         try {
-            alumnos.add(new Alumno((short)55, 7.33, LocalDate.MIN, 1, "Juan1", "Perez"));
-            alumnos.add(new Alumno((short)55, 7.33, LocalDate.MIN, 2, "Juan2", "Perez"));
-            alumnos.add(new Alumno((short)55, 7.33, LocalDate.MIN, 3, "Juan3", "Perez"));
-            alumnos.add(new Alumno((short)55, 7.33, LocalDate.MIN, 4, "Juan4", "Perez"));
-        } catch (DniInvalidoException ex) {
+            raf.seek(0);
+            String linea;
+            while ((linea = raf.readLine()) != null) {
+                if (linea.isBlank()) {
+                    continue;
+                }
+
+                Alumno alumno = AlumnoUtils.str2Alu(linea.split(AlumnoUtils.TAB, -1));
+                if (incluirEliminados || alumno.getEstado() != 'B') {
+                    alumnos.add(alumno);
+                }
+            }
+        } catch (IOException | DniInvalidoException | NombreInvalidoException | RuntimeException ex) {
             Logger.getLogger(AlumnoDAOTXT.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException(ex.getLocalizedMessage());
         }
         
         return alumnos;
@@ -133,6 +158,19 @@ public class AlumnoDAOTXT extends DAO<Alumno,Integer> {
             throw new DAOException(ex.getLocalizedMessage());
         }
         return false;
+    }
+
+    private void reescribirArchivo(List<Alumno> alumnos) throws DAOException {
+        try {
+            raf.setLength(0);
+            raf.seek(0);
+            for (Alumno alumno : alumnos) {
+                raf.writeBytes(AlumnoUtils.alu2Str(alumno) + System.lineSeparator());
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(AlumnoDAOTXT.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException(ex.getLocalizedMessage());
+        }
     }
     
 }

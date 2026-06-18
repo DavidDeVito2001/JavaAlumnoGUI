@@ -7,6 +7,7 @@ package utils;
 import exceptions.DniInvalidoException;
 import exceptions.NombreInvalidoException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import org.apache.commons.lang3.StringUtils;
 import persona.Alumno;
 
@@ -17,29 +18,22 @@ import persona.Alumno;
 public final class AlumnoUtils {
 
     public static final String TAB = "\t";
-    private static final int NOMBRE_MAX_LENGTH = 15;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     
     private AlumnoUtils() {
     }
     
     public static String alu2Str(Alumno alu) {
         String dni = StringUtils.leftPad(String.valueOf(alu.getDni()), 8, '0');
-        
-        String nombreTrunc = alu.getNombre().length()>NOMBRE_MAX_LENGTH?
-                alu.getNombre().substring(0, NOMBRE_MAX_LENGTH):
-                alu.getNombre();
-        /*
-        if (alu.getNombre().length()>NOMBRE_MAX_LENGTH) {
-            nombreTrunc = alu.getNombre().substring(0, NOMBRE_MAX_LENGTH);
-        }
-        else {
-            nombreTrunc = alu.getNombre();
-        }*/
-        
-        String nombre = StringUtils.leftPad(nombreTrunc, NOMBRE_MAX_LENGTH);
-        String apellido = StringUtils.leftPad(alu.getApellido(), 15);
-        
-        return dni+TAB+nombre+TAB+apellido+TAB+alu.getFecIngStr();
+
+        return dni + TAB
+                + safe(alu.getNombre()) + TAB
+                + safe(alu.getApellido()) + TAB
+                + formatDate(alu.getFecNac()) + TAB
+                + alu.getPromedio() + TAB
+                + alu.getCantMatAprob() + TAB
+                + formatDate(alu.getFecIng()) + TAB
+                + estadoOrDefault(alu.getEstado());
     }
     
     public static Alumno str2Alu(String[] campos) throws DniInvalidoException, NombreInvalidoException {
@@ -48,15 +42,36 @@ public final class AlumnoUtils {
         alu.setDni(Integer.valueOf(campos[index++]));
         alu.setNombre(campos[index++].trim());
         alu.setApellido(campos[index++].trim());
-        
-        String[] fecIng = campos[index++].split(Alumno.SLASH);
-        
-        // 02/05/2026
-        int year = Integer.valueOf(fecIng[2]);
-        int month = Integer.valueOf(fecIng[1]);
-        int day = Integer.valueOf(fecIng[0]);
-        alu.setFecIng(LocalDate.of(year, month, day));
+
+        if (campos.length == 4) {
+            alu.setFecIng(parseDate(campos[index++]));
+            alu.setEstado('A');
+            return alu;
+        }
+
+        alu.setFecNac(parseDate(campos[index++]));
+        alu.setPromedio(Double.parseDouble(campos[index++].trim()));
+        alu.setCantMatAprob(Short.parseShort(campos[index++].trim()));
+        alu.setFecIng(parseDate(campos[index++]));
+        alu.setEstado(campos[index++].trim().charAt(0));
         
         return alu;
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private static String formatDate(LocalDate date) {
+        return date == null ? "" : date.format(DATE_FORMATTER);
+    }
+
+    private static LocalDate parseDate(String value) {
+        String cleanValue = value == null ? "" : value.trim();
+        return cleanValue.isEmpty() ? null : LocalDate.parse(cleanValue, DATE_FORMATTER);
+    }
+
+    private static char estadoOrDefault(char estado) {
+        return estado == '\0' ? 'A' : estado;
     }
 }

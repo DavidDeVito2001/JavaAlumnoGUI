@@ -13,6 +13,7 @@ import persona.Alumno;
  *
  * @author g.guzman
  */
+@SuppressWarnings("serial")
 public class AlumnosModel extends AbstractTableModel {
 
     private static final int COL_DNI = 0;

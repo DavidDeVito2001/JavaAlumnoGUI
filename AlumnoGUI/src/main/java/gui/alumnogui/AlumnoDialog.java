@@ -8,14 +8,15 @@ import java.awt.Component;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.GregorianCalendar;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 /**
  *
  * @author g.guzman
  */
+@SuppressWarnings({"serial", "this-escape"})
 public class AlumnoDialog extends javax.swing.JDialog {
     
     private AlumnoDto dto;
@@ -27,6 +28,7 @@ public class AlumnoDialog extends javax.swing.JDialog {
 
     public void setDto(AlumnoDto dto) {
         this.dto = dto;
+        cargarDtoEnFormulario();
     }
 
     /**
@@ -41,21 +43,23 @@ public class AlumnoDialog extends javax.swing.JDialog {
         
         if (crudOption==CrudOptionEnum.READ) {
             cancelarButton.setVisible(false);
-            
-            enableTextFields();
+            okButton.setText("Cerrar");
+            setCamposEnabled(false);
         }
         else if (crudOption==CrudOptionEnum.UPDATE) {
             dniTextField.setEnabled(false);
         }
     }
 
-    public void enableTextFields() {
+    public void setCamposEnabled(boolean enabled) {
         final Component[] components = this.getContentPane().getComponents();
         for (Component component : components) {
             if (component instanceof JTextField) {
-                component.setEnabled(false);
+                component.setEnabled(enabled);
             }
         }
+        fecNacDateChooser.setEnabled(enabled);
+        fecIngDateChooser.setEnabled(enabled);
     }
     /**
      * Creates new form AlumnoDialog
@@ -82,6 +86,16 @@ public class AlumnoDialog extends javax.swing.JDialog {
         nombreTextField = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         fecNacDateChooser = new com.toedter.calendar.JDateChooser();
+        jLabel4 = new javax.swing.JLabel();
+        apellidoTextField = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        promedioTextField = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
+        cantMatAprobTextField = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        fecIngDateChooser = new com.toedter.calendar.JDateChooser();
+        jLabel8 = new javax.swing.JLabel();
+        estadoTextField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -110,6 +124,16 @@ public class AlumnoDialog extends javax.swing.JDialog {
 
         jLabel3.setText("Fecha Nac.:");
 
+        jLabel4.setText("Apellido:");
+
+        jLabel5.setText("Promedio:");
+
+        jLabel6.setText("Materias aprob.:");
+
+        jLabel7.setText("Fecha Ing.:");
+
+        jLabel8.setText("Estado:");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -128,11 +152,21 @@ public class AlumnoDialog extends javax.swing.JDialog {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(33, 33, 33)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(nombreTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 156, Short.MAX_VALUE)
-                            .addComponent(fecNacDateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(fecNacDateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(apellidoTextField)
+                            .addComponent(promedioTextField)
+                            .addComponent(cantMatAprobTextField)
+                            .addComponent(fecIngDateChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(estadoTextField))))
                 .addContainerGap(77, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -146,11 +180,31 @@ public class AlumnoDialog extends javax.swing.JDialog {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(nombreTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4)
+                    .addComponent(apellidoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3)
                     .addComponent(fecNacDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 124, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5)
+                    .addComponent(promedioTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(cantMatAprobTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel7)
+                    .addComponent(fecIngDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel8)
+                    .addComponent(estadoTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(okButton)
                     .addComponent(cancelarButton))
@@ -161,31 +215,91 @@ public class AlumnoDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
+        if (crudOption == CrudOptionEnum.READ) {
+            setVisible(false);
+            return;
+        }
+
+        try {
+            validarFormulario();
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Datos invalidos", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         dto = new AlumnoDto();
         dto.setDni(dniTextField.getText());
         dto.setNombre(nombreTextField.getText());
-        
-        final Instant toInstant = fecNacDateChooser.getCalendar().toInstant();
-        dto.setFecNac(LocalDate.ofInstant(toInstant, ZoneId.systemDefault()));
+        dto.setApellido(apellidoTextField.getText());
+        dto.setFecNac(getLocalDate(fecNacDateChooser));
+        dto.setPromedio(promedioTextField.getText());
+        dto.setCantMatAprob(cantMatAprobTextField.getText());
+        dto.setFecIng(getLocalDate(fecIngDateChooser));
+        dto.setEstado(estadoTextField.getText());
         
         setVisible(false);
         
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-        if (crudOption!=CrudOptionEnum.CREATE) {
-            dniTextField.setText(dto.getDni());
-            nombreTextField.setText(dto.getNombre());
-            
-            LocalDate localDateObj = dto.getFecNac();
-            GregorianCalendar gc = GregorianCalendar.from(localDateObj.atStartOfDay(ZoneId.systemDefault()));
-            fecNacDateChooser.setCalendar(gc);
-        }
+        cargarDtoEnFormulario();
     }//GEN-LAST:event_formWindowActivated
 
     private void cancelarButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelarButtonActionPerformed
+        dto = null;
         setVisible(false);
     }//GEN-LAST:event_cancelarButtonActionPerformed
+
+    private void cargarDtoEnFormulario() {
+        if (dto == null || dniTextField == null) {
+            return;
+        }
+
+        dniTextField.setText(dto.getDni());
+        nombreTextField.setText(dto.getNombre());
+        apellidoTextField.setText(dto.getApellido());
+        setDate(fecNacDateChooser, dto.getFecNac());
+        promedioTextField.setText(dto.getPromedio());
+        cantMatAprobTextField.setText(dto.getCantMatAprob());
+        setDate(fecIngDateChooser, dto.getFecIng());
+        estadoTextField.setText(dto.getEstado());
+    }
+
+    private void validarFormulario() {
+        validarTexto(dniTextField, "DNI");
+        validarTexto(nombreTextField, "Nombre");
+        validarTexto(apellidoTextField, "Apellido");
+        validarTexto(promedioTextField, "Promedio");
+        validarTexto(cantMatAprobTextField, "Cantidad de materias aprobadas");
+        validarTexto(estadoTextField, "Estado");
+        if (fecNacDateChooser.getDate() == null) {
+            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
+        }
+        if (fecIngDateChooser.getDate() == null) {
+            throw new IllegalArgumentException("La fecha de ingreso es obligatoria.");
+        }
+    }
+
+    private void validarTexto(JTextField textField, String campo) {
+        if (textField.getText() == null || textField.getText().trim().isEmpty()) {
+            throw new IllegalArgumentException("El campo " + campo + " es obligatorio.");
+        }
+    }
+
+    private LocalDate getLocalDate(com.toedter.calendar.JDateChooser dateChooser) {
+        final Instant toInstant = dateChooser.getCalendar().toInstant();
+        return LocalDate.ofInstant(toInstant, ZoneId.systemDefault());
+    }
+
+    private void setDate(com.toedter.calendar.JDateChooser dateChooser, LocalDate localDateObj) {
+        if (localDateObj == null) {
+            dateChooser.setDate(null);
+            return;
+        }
+
+        GregorianCalendar gc = GregorianCalendar.from(localDateObj.atStartOfDay(ZoneId.systemDefault()));
+        dateChooser.setCalendar(gc);
+    }
 
     /**
      * @param args the command line arguments
@@ -230,13 +344,23 @@ public class AlumnoDialog extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField apellidoTextField;
     private javax.swing.JButton cancelarButton;
+    private javax.swing.JTextField cantMatAprobTextField;
     private javax.swing.JTextField dniTextField;
+    private javax.swing.JTextField estadoTextField;
+    private com.toedter.calendar.JDateChooser fecIngDateChooser;
     private com.toedter.calendar.JDateChooser fecNacDateChooser;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JTextField nombreTextField;
     private javax.swing.JButton okButton;
+    private javax.swing.JTextField promedioTextField;
     // End of variables declaration//GEN-END:variables
 }
