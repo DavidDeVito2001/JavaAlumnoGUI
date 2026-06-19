@@ -6,6 +6,8 @@ package gui.alumnogui;
 
 import exceptions.DniInvalidoException;
 import exceptions.NombreInvalidoException;
+import java.time.LocalDate;
+import java.time.Period;
 import persona.Alumno;
 
 /**
@@ -15,6 +17,9 @@ import persona.Alumno;
 public final class AlumnoMapper {
 
     private static final char ESTADO_POR_DEFECTO = 'A';
+    private static final int EDAD_MINIMA = 18;
+    private static final double PROMEDIO_MIN = 0;
+    private static final double PROMEDIO_MAX = 10;
 
     private AlumnoMapper() {
     }
@@ -29,7 +34,6 @@ public final class AlumnoMapper {
         validarObligatorio(dto.getApellido(), "Apellido");
         validarObligatorio(dto.getPromedio(), "Promedio");
         validarObligatorio(dto.getCantMatAprob(), "Cantidad de materias aprobadas");
-        validarObligatorio(dto.getEstado(), "Estado");
         if (dto.getFecNac() == null) {
             throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
         }
@@ -37,14 +41,36 @@ public final class AlumnoMapper {
             throw new IllegalArgumentException("La fecha de ingreso es obligatoria.");
         }
 
+        double promedio = parseDouble(dto.getPromedio(), "Promedio");
+        if (promedio < PROMEDIO_MIN || promedio > PROMEDIO_MAX) {
+            throw new IllegalArgumentException("El promedio debe estar entre 0 y 10.");
+        }
+
+        short cantMatAprob = parseShort(dto.getCantMatAprob(), "Cantidad de materias aprobadas");
+        if (cantMatAprob < 0) {
+            throw new IllegalArgumentException("La cantidad de materias aprobadas no puede ser negativa.");
+        }
+
+        LocalDate fecNac = dto.getFecNac();
+        LocalDate fecIng = dto.getFecIng();
+        if (fecIng.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha de ingreso no puede ser posterior a la fecha actual.");
+        }
+        if (fecIng.isBefore(fecNac)) {
+            throw new IllegalArgumentException("La fecha de ingreso no puede ser anterior a la fecha de nacimiento.");
+        }
+        if (Period.between(fecNac, fecIng).getYears() < EDAD_MINIMA) {
+            throw new IllegalArgumentException("El alumno debe tener al menos " + EDAD_MINIMA + " años al momento de ingresar.");
+        }
+
         Alumno alu = new Alumno();
         alu.setDni(parseInt(dto.getDni(), "DNI"));
         alu.setNombre(dto.getNombre());
         alu.setApellido(dto.getApellido());
-        alu.setFecNac(dto.getFecNac());
-        alu.setPromedio(parseDouble(dto.getPromedio(), "Promedio"));
-        alu.setCantMatAprob(parseShort(dto.getCantMatAprob(), "Cantidad de materias aprobadas"));
-        alu.setFecIng(dto.getFecIng());
+        alu.setFecNac(fecNac);
+        alu.setPromedio(promedio);
+        alu.setCantMatAprob(cantMatAprob);
+        alu.setFecIng(fecIng);
         alu.setEstado(parseEstado(dto.getEstado()));
 
         return alu;

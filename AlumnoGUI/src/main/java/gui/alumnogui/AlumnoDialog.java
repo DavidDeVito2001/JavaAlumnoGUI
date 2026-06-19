@@ -4,6 +4,8 @@
  */
 package gui.alumnogui;
 
+import exceptions.DniInvalidoException;
+import exceptions.NombreInvalidoException;
 import java.awt.Component;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,6 +50,11 @@ public class AlumnoDialog extends javax.swing.JDialog {
         }
         else if (crudOption==CrudOptionEnum.UPDATE) {
             dniTextField.setEnabled(false);
+        }
+        else if (crudOption==CrudOptionEnum.CREATE) {
+            // El estado de un alumno nuevo siempre es 'A' (activo); no se edita al crear.
+            estadoTextField.setText("A");
+            estadoTextField.setEnabled(false);
         }
     }
 
@@ -220,25 +227,29 @@ public class AlumnoDialog extends javax.swing.JDialog {
             return;
         }
 
+        AlumnoDto nuevoDto = new AlumnoDto();
+        nuevoDto.setDni(dniTextField.getText());
+        nuevoDto.setNombre(nombreTextField.getText());
+        nuevoDto.setApellido(apellidoTextField.getText());
+        nuevoDto.setFecNac(getLocalDate(fecNacDateChooser));
+        nuevoDto.setPromedio(promedioTextField.getText());
+        nuevoDto.setCantMatAprob(cantMatAprobTextField.getText());
+        nuevoDto.setFecIng(getLocalDate(fecIngDateChooser));
+        nuevoDto.setEstado(estadoTextField.getText());
+
+        // Validamos con la misma logica del backend ANTES de cerrar el modal.
+        // Si algo esta mal, mostramos el error y dejamos el formulario abierto
+        // con los datos ya cargados.
         try {
-            validarFormulario();
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Datos invalidos", JOptionPane.ERROR_MESSAGE);
+            AlumnoMapper.dto2Alu(nuevoDto);
+        } catch (DniInvalidoException | NombreInvalidoException | IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "Datos invalidos", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        dto = new AlumnoDto();
-        dto.setDni(dniTextField.getText());
-        dto.setNombre(nombreTextField.getText());
-        dto.setApellido(apellidoTextField.getText());
-        dto.setFecNac(getLocalDate(fecNacDateChooser));
-        dto.setPromedio(promedioTextField.getText());
-        dto.setCantMatAprob(cantMatAprobTextField.getText());
-        dto.setFecIng(getLocalDate(fecIngDateChooser));
-        dto.setEstado(estadoTextField.getText());
-        
+        dto = nuevoDto;
         setVisible(false);
-        
+
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
@@ -265,28 +276,10 @@ public class AlumnoDialog extends javax.swing.JDialog {
         estadoTextField.setText(dto.getEstado());
     }
 
-    private void validarFormulario() {
-        validarTexto(dniTextField, "DNI");
-        validarTexto(nombreTextField, "Nombre");
-        validarTexto(apellidoTextField, "Apellido");
-        validarTexto(promedioTextField, "Promedio");
-        validarTexto(cantMatAprobTextField, "Cantidad de materias aprobadas");
-        validarTexto(estadoTextField, "Estado");
-        if (fecNacDateChooser.getDate() == null) {
-            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria.");
-        }
-        if (fecIngDateChooser.getDate() == null) {
-            throw new IllegalArgumentException("La fecha de ingreso es obligatoria.");
-        }
-    }
-
-    private void validarTexto(JTextField textField, String campo) {
-        if (textField.getText() == null || textField.getText().trim().isEmpty()) {
-            throw new IllegalArgumentException("El campo " + campo + " es obligatorio.");
-        }
-    }
-
     private LocalDate getLocalDate(com.toedter.calendar.JDateChooser dateChooser) {
+        if (dateChooser.getDate() == null) {
+            return null;
+        }
         final Instant toInstant = dateChooser.getCalendar().toInstant();
         return LocalDate.ofInstant(toInstant, ZoneId.systemDefault());
     }

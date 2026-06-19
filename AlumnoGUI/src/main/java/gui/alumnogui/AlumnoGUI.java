@@ -30,7 +30,6 @@ public class AlumnoGUI extends javax.swing.JFrame {
 
     private static final String DEFAULT_DB_URL = "jdbc:mysql://localhost:3306/universidad_caba";
     private static final String DEFAULT_DB_USER = "root";
-    private static final String DEFAULT_DB_PWD = "root";
 
     private DAO<Alumno, Integer> dao;
     private AlumnoDAOTXT daoTXT;
@@ -458,11 +457,19 @@ public class AlumnoGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_modificarButtonActionPerformed
 
     private void connDBButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        javax.swing.JPasswordField pwdField = new javax.swing.JPasswordField();
+        int opcion = JOptionPane.showConfirmDialog(this, pwdField,
+                "Contraseña de MySQL para el usuario '" + userTextField.getText() + "'",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (opcion != JOptionPane.OK_OPTION) {
+            return;
+        }
+
         Map<String, String> config = new HashMap<>();
         config.put(DAOFactory.TIPO_DAO, DAOFactory.TIPO_DAO_SQL);
         config.put(DAOFactory.URL_DB, DEFAULT_DB_URL);
         config.put(DAOFactory.USER_DB, userTextField.getText());
-        config.put(DAOFactory.PWD_DB, DEFAULT_DB_PWD);
+        config.put(DAOFactory.PWD_DB, new String(pwdField.getPassword()));
 
         try {
             daoSQL = (AlumnoDAOSQL) DAOFactory.createDAO(config);
