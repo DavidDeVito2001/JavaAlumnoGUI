@@ -335,13 +335,19 @@ public class AlumnoGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_eliminarButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        try {
-            if (daoTXT != null) {
+        if (daoTXT != null) {
+            try {
                 daoTXT.close();
+            } catch (DAOException ex) {
+                Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
             }
-            // daoSQL.close();
-        } catch (DAOException ex) {
-            Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        if (daoSQL != null) {
+            try {
+                daoSQL.close();
+            } catch (DAOException ex) {
+                Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }//GEN-LAST:event_formWindowClosing
 
@@ -353,6 +359,15 @@ public class AlumnoGUI extends javax.swing.JFrame {
             String pathfile = fileChooser.getSelectedFile().getAbsolutePath();
             pathfileTextField.setText(pathfile);
             
+            if (daoTXT != null) {
+                // Cerramos el archivo abierto antes de cambiar a otro.
+                try {
+                    daoTXT.close();
+                } catch (DAOException ex) {
+                    Logger.getLogger(AlumnoGUI.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
             Map<String, String> config = new HashMap<>();
             config.put(DAOFactory.TIPO_DAO, DAOFactory.TIPO_DAO_TXT);
             config.put(DAOFactory.PATH_FILE, pathfile);
@@ -457,6 +472,13 @@ public class AlumnoGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_modificarButtonActionPerformed
 
     private void connDBButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        if (daoSQL != null) {
+            // Conexion a la base ya establecida: la reutilizamos, no volvemos a pedir la contraseña.
+            dao = daoSQL;
+            refrescarGrillaSiConectado();
+            return;
+        }
+
         javax.swing.JPasswordField pwdField = new javax.swing.JPasswordField();
         int opcion = JOptionPane.showConfirmDialog(this, pwdField,
                 "Contraseña de MySQL para el usuario '" + userTextField.getText() + "'",
@@ -519,6 +541,12 @@ public class AlumnoGUI extends javax.swing.JFrame {
         Alumno selectedAlu = alumnosModel.getAlumnoAt(selectedRow);
         if (selectedAlu == null) {
             JOptionPane.showMessageDialog(this, "Nada Seleccionado", "Eliminar",
+                    JOptionPane.WARNING_MESSAGE);
+            return true;
+        }
+
+        if (selectedAlu.getEstado() == 'B') {
+            JOptionPane.showMessageDialog(this, "El alumno ya está dado de baja.", "Eliminar",
                     JOptionPane.WARNING_MESSAGE);
             return true;
         }
